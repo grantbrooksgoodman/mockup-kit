@@ -72,6 +72,7 @@ public struct ScreenInsets: Sendable {
     /// correctly handles internal opaque elements such as a Dynamic Island or notch.
     ///
     /// - Parameter cgImage: The device frame image. The screen area must be fully transparent.
+    ///
     /// - Returns: Insets describing the screen region within the image.
     public static func detect(
         from cgImage: CGImage
@@ -187,7 +188,7 @@ public struct ScreenInsets: Sendable {
         // radius of the screen opening.
         //
         // Scan 1 (vertical): distance from (leftInset, topInset) downward
-        // to the first bezel pixel — measures the outer gap.
+        // to the first bezel pixel – measures the outer gap.
         var outerGap: CGFloat = 0
         for y in topInset ..< height {
             if isOpaque(
@@ -201,7 +202,7 @@ public struct ScreenInsets: Sendable {
 
         // Scan 2 (horizontal): distance from leftInset rightward along
         // y = topInset to the first screen-opening pixel (the bezel-to-
-        // transparent transition) — measures the full corner extent.
+        // transparent transition) – measures the full corner extent.
         var cornerExtent: CGFloat = 0
         var foundBezelAtCorner = false
         for x in leftInset ..< width {

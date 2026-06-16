@@ -16,7 +16,7 @@ public enum Background: Sendable {
 
     /// An image that fills the canvas.
     case image(URL)
-    
+
     /// A linear gradient between two or more colors.
     case linearGradient(
         colors: [Color],

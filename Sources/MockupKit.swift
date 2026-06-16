@@ -12,6 +12,7 @@ import Foundation
 ///
 /// MockupKit composites app screenshots inside device frames with customizable backgrounds
 /// and headlines, producing publication-ready PNG images at standard App Store dimensions.
+/// Each mockup supports one or more ``DeviceEntry`` values for multi-device compositions.
 ///
 /// Call ``generate(_:outputSizes:translatingTo:)`` to render a batch of mockups to disk,
 /// or ``render(_:outputSize:)`` to obtain the image data directly.
@@ -35,6 +36,7 @@ public enum MockupKit {
     ///   - mockups: The mockup configurations to render.
     ///   - outputSizes: The output dimensions to generate for each mockup.
     ///   - languageCodes: ISO 639-1 language codes to translate headlines into.
+    ///
     /// - Returns: The file URLs of every generated PNG.
     @discardableResult
     public static func generate(
@@ -66,7 +68,7 @@ public enum MockupKit {
                     mockup,
                     outputSize: outputSize
                 ).write(to: fileURL)
-                
+
                 generatedFiles.insert(fileURL)
             }
         }
@@ -127,6 +129,7 @@ public enum MockupKit {
     /// - Parameters:
     ///   - mockup: The mockup configuration to render.
     ///   - outputSize: The output dimensions.
+    ///
     /// - Returns: The rendered image as PNG data.
     public static func render(
         _ mockup: Mockup,
@@ -173,7 +176,7 @@ public extension MockupKit {
             outputDirectory = URL.documentsDirectory.appending(path: "MockupKit")
             sourceLanguageCode = "en"
         }
-        
+
         // MARK: - Delegate Registration
 
         /// Registers an object to handle headline translation during mockup generation.
@@ -212,16 +215,16 @@ public extension MockupKit {
     enum Error: LocalizedError {
         /// The rendered image could not be encoded as a PNG.
         case encodingFailed
-        
+
         /// The image at the specified URL could not be loaded.
         case imageLoadFailed(URL)
-        
+
         /// The image renderer failed to produce a bitmap.
         case renderingFailed
-        
+
         /// The screen region could not be detected in the device frame image.
         case screenDetectionFailed
-        
+
         /// Headline translation failed for the given reason.
         case translationFailed(String)
 
@@ -231,16 +234,16 @@ public extension MockupKit {
             switch self {
             case .encodingFailed:
                 "Failed to encode the rendered image as PNG."
-                
+
             case let .imageLoadFailed(url):
                 "Failed to load image at \(url.path)."
-                
+
             case .renderingFailed:
                 "Failed to render the mockup canvas."
-                
+
             case .screenDetectionFailed:
                 "Failed to detect the screen region in the device frame image."
-                
+
             case let .translationFailed(reason):
                 "Translation failed: \(reason)"
             }

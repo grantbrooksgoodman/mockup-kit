@@ -14,15 +14,21 @@ import ComponentKit
 
 @MainActor
 struct MockupCanvasView: View {
+    // MARK: - Types
+
+    struct LoadedDevice {
+        let frame: DeviceFrame
+        let frameImage: UIImage
+        let screenshotImage: UIImage
+    }
+
     // MARK: - Properties
 
     let background: Background
     let backgroundImage: UIImage?
     let canvasSize: CGSize
-    let frame: DeviceFrame
-    let frameImage: UIImage
+    let devices: [LoadedDevice]
     let headline: Headline
-    let screenshotImage: UIImage?
 
     // MARK: - Computed Properties
 
@@ -34,88 +40,14 @@ struct MockupCanvasView: View {
         canvasSize.height / OutputSize.largeDimensions.height
     }
 
-    private var clippedScreenshotImage: UIImage? {
-        guard let screenshotImage else { return nil }
-        let size = CGSize(
-            width: screenDisplayWidth,
-            height: screenDisplayHeight
-        )
-
-        let format = UIGraphicsImageRendererFormat()
-        format.opaque = false
-        format.scale = 1
-
-        let imageRenderer = UIGraphicsImageRenderer(
-            size: size,
-            format: format
-        )
-
-        return imageRenderer.image { rendererContext in
-            let cgContext = rendererContext.cgContext
-
-            // Clip to a continuous rounded rectangle matching the
-            // bezel's screen opening.
-            let clipPath = RoundedRectangle(
-                cornerRadius: screenCornerRadius,
-                style: .continuous
-            )
-            .path(
-                in: CGRect(
-                    origin: .zero,
-                    size: size
-                )
-            )
-
-            cgContext.addPath(clipPath.cgPath)
-            cgContext.clip()
-
-            // Draw screenshot scaled to fill the screen area.
-            let imageAspect = screenshotImage.size.width / screenshotImage.size.height
-            let rectAspect = size.width / size.height
-            let drawRect: CGRect
-
-            if imageAspect > rectAspect {
-                let drawWidth = size.height * imageAspect
-                drawRect = CGRect(
-                    x: (size.width - drawWidth) / 2,
-                    y: 0,
-                    width: drawWidth,
-                    height: size.height
-                )
-            } else {
-                let drawHeight = size.width / imageAspect
-                drawRect = CGRect(
-                    x: 0,
-                    y: (size.height - drawHeight) / 2,
-                    width: size.width,
-                    height: drawHeight
-                )
-            }
-
-            screenshotImage.draw(in: drawRect)
-        }
-    }
-
     private var deviceFrameBottomY: CGFloat {
-        canvasSize.height / 2 + frame.offset.y * canvasScaleY + frameDisplayHeight / 2
+        guard let primary = devices.first else { return canvasSize.height / 2 }
+        return canvasSize.height / 2 + primary.frame.offset.y * canvasScaleY + frameDisplayHeight(for: primary) / 2
     }
 
     private var deviceFrameTopY: CGFloat {
-        canvasSize.height / 2 + frame.offset.y * canvasScaleY - frameDisplayHeight / 2
-    }
-
-    private var frameDisplayHeight: CGFloat {
-        frameDisplayWidth * (
-            frameImage.size.height / frameImage.size.width
-        )
-    }
-
-    private var frameDisplayWidth: CGFloat {
-        canvasSize.width * frame.scale
-    }
-
-    private var framePixelWidth: CGFloat {
-        frameImage.size.width * frameImage.scale
+        guard let primary = devices.first else { return canvasSize.height / 2 }
+        return canvasSize.height / 2 + primary.frame.offset.y * canvasScaleY - frameDisplayHeight(for: primary) / 2
     }
 
     private var headlineHorizontalAlignment: HorizontalAlignment {
@@ -141,134 +73,115 @@ struct MockupCanvasView: View {
         )
     }
 
-    private var scaleFactor: CGFloat {
-        frameDisplayWidth / framePixelWidth
-    }
-
-    private var screenCornerRadius: CGFloat {
-        frame.screenInsets.cornerRadius * scaleFactor
-    }
-
-    private var screenDisplayHeight: CGFloat {
-        frameDisplayHeight - (
-            frame.screenInsets.top + frame.screenInsets.bottom
-        ) * scaleFactor
-    }
-
-    private var screenDisplayWidth: CGFloat {
-        frameDisplayWidth - (
-            frame.screenInsets.left + frame.screenInsets.right
-        ) * scaleFactor
-    }
-
-    private var screenOffsetX: CGFloat {
-        (
-            frame.screenInsets.left - frame.screenInsets.right
-        ) * scaleFactor / 2
-    }
-
-    private var screenOffsetY: CGFloat {
-        (
-            frame.screenInsets.top - frame.screenInsets.bottom
-        ) * scaleFactor / 2
-    }
-
     // MARK: - Body
 
     var body: some View {
         ZStack {
             backgroundView
 
-            switch headline.position {
-            case let .above(spacing):
-                VStack(spacing: spacing * canvasScaleY) {
-                    headlineView
-                    deviceView
-                }
-                .offset(
-                    x: frame.offset.x * canvasScaleX,
-                    y: frame.offset.y * canvasScaleY
-                )
-
-            case let .below(spacing):
-                VStack(spacing: spacing * canvasScaleY) {
-                    deviceView
-                    headlineView
-                }
-                .offset(
-                    x: frame.offset.x * canvasScaleX,
-                    y: frame.offset.y * canvasScaleY
-                )
-
-            case let .canvasBottom(padding):
-                deviceView
+            ForEach(
+                devices.indices.dropFirst(),
+                id: \.self
+            ) { index in
+                deviceView(for: devices[index])
                     .offset(
-                        x: frame.offset.x * canvasScaleX,
-                        y: frame.offset.y * canvasScaleY
+                        x: devices[index].frame.offset.x * canvasScaleX,
+                        y: devices[index].frame.offset.y * canvasScaleY
+                    )
+            }
+
+            if let primary = devices.first {
+                switch headline.position {
+                case let .above(spacing):
+                    VStack(spacing: spacing * canvasScaleY) {
+                        headlineView
+                        deviceView(for: primary)
+                    }
+                    .offset(
+                        x: primary.frame.offset.x * canvasScaleX,
+                        y: primary.frame.offset.y * canvasScaleY
                     )
 
-                VStack {
-                    Spacer()
-                    headlineView
-                        .padding(
-                            .bottom,
-                            padding * canvasScaleY
-                        )
-                }
-
-            case let .canvasTop(padding):
-                deviceView
+                case let .below(spacing):
+                    VStack(spacing: spacing * canvasScaleY) {
+                        deviceView(for: primary)
+                        headlineView
+                    }
                     .offset(
-                        x: frame.offset.x * canvasScaleX,
-                        y: frame.offset.y * canvasScaleY
+                        x: primary.frame.offset.x * canvasScaleX,
+                        y: primary.frame.offset.y * canvasScaleY
                     )
 
-                VStack {
-                    headlineView
-                        .padding(
-                            .top,
-                            padding * canvasScaleY
+                case let .canvasBottom(padding):
+                    deviceView(for: primary)
+                        .offset(
+                            x: primary.frame.offset.x * canvasScaleX,
+                            y: primary.frame.offset.y * canvasScaleY
                         )
 
-                    Spacer()
+                    VStack {
+                        Spacer()
+                        headlineView
+                            .padding(
+                                .bottom,
+                                padding * canvasScaleY
+                            )
+                    }
+
+                case let .canvasTop(padding):
+                    deviceView(for: primary)
+                        .offset(
+                            x: primary.frame.offset.x * canvasScaleX,
+                            y: primary.frame.offset.y * canvasScaleY
+                        )
+
+                    VStack {
+                        headlineView
+                            .padding(
+                                .top,
+                                padding * canvasScaleY
+                            )
+
+                        Spacer()
+                    }
+
+                case let .custom(x, y):
+                    deviceView(for: primary)
+                        .offset(
+                            x: primary.frame.offset.x * canvasScaleX,
+                            y: primary.frame.offset.y * canvasScaleY
+                        )
+
+                    headlineView
+                        .offset(
+                            x: x * canvasScaleX - canvasSize.width / 2,
+                            y: y * canvasScaleY - canvasSize.height / 2
+                        )
+
+                case let .equidistantBottom(offset):
+                    deviceView(for: primary)
+                        .offset(
+                            x: primary.frame.offset.x * canvasScaleX,
+                            y: primary.frame.offset.y * canvasScaleY
+                        )
+
+                    headlineView
+                        .offset(
+                            y: deviceFrameBottomY / 2 + offset * canvasScaleY
+                        )
+
+                case let .equidistantTop(offset):
+                    deviceView(for: primary)
+                        .offset(
+                            x: primary.frame.offset.x * canvasScaleX,
+                            y: primary.frame.offset.y * canvasScaleY
+                        )
+
+                    headlineView
+                        .offset(
+                            y: deviceFrameTopY / 2 - canvasSize.height / 2 + offset * canvasScaleY
+                        )
                 }
-
-            case let .custom(x, y):
-                deviceView
-                    .offset(
-                        x: frame.offset.x * canvasScaleX,
-                        y: frame.offset.y * canvasScaleY
-                    )
-
-                headlineView
-                    .offset(
-                        x: x * canvasScaleX - canvasSize.width / 2,
-                        y: y * canvasScaleY - canvasSize.height / 2
-                    )
-
-            case let .equidistantBottom(offset):
-                deviceView
-                    .offset(
-                        x: frame.offset.x * canvasScaleX,
-                        y: frame.offset.y * canvasScaleY
-                    )
-
-                headlineView
-                    .offset(
-                        y: deviceFrameBottomY / 2 + offset * canvasScaleY
-                    )
-
-            case let .equidistantTop(offset):
-                deviceView
-                    .offset(
-                        x: frame.offset.x * canvasScaleX,
-                        y: frame.offset.y * canvasScaleY
-                    )
-
-                headlineView
-                    .offset(
-                        y: deviceFrameTopY / 2 - canvasSize.height / 2 + offset * canvasScaleY
-                    )
             }
         }
         .frame(
@@ -306,31 +219,127 @@ struct MockupCanvasView: View {
         }
     }
 
-    private var deviceView: some View {
-        ZStack {
-            screenContentView
+    private func clippedScreenshotImage(
+        for device: LoadedDevice,
+        size: CGSize,
+        cornerRadius: CGFloat
+    ) -> UIImage {
+        let screenshotImage = device.screenshotImage
+
+        let format = UIGraphicsImageRendererFormat()
+        format.opaque = false
+        format.scale = 1
+
+        let imageRenderer = UIGraphicsImageRenderer(
+            size: size,
+            format: format
+        )
+
+        return imageRenderer.image { rendererContext in
+            let cgContext = rendererContext.cgContext
+
+            let clipPath = RoundedRectangle(
+                cornerRadius: cornerRadius,
+                style: .continuous
+            )
+            .path(
+                in: CGRect(
+                    origin: .zero,
+                    size: size
+                )
+            )
+
+            cgContext.addPath(clipPath.cgPath)
+            cgContext.clip()
+
+            let imageAspect = screenshotImage.size.width / screenshotImage.size.height
+            let rectAspect = size.width / size.height
+            let drawRect: CGRect
+
+            if imageAspect > rectAspect {
+                let drawWidth = size.height * imageAspect
+                drawRect = CGRect(
+                    x: (size.width - drawWidth) / 2,
+                    y: 0,
+                    width: drawWidth,
+                    height: size.height
+                )
+            } else {
+                let drawHeight = size.width / imageAspect
+                drawRect = CGRect(
+                    x: 0,
+                    y: (size.height - drawHeight) / 2,
+                    width: size.width,
+                    height: drawHeight
+                )
+            }
+
+            screenshotImage.draw(in: drawRect)
+        }
+    }
+
+    private func deviceView(for device: LoadedDevice) -> some View {
+        let displayWidth = frameDisplayWidth(for: device)
+        let displayHeight = frameDisplayHeight(for: device)
+        let pixelWidth = device.frameImage.size.width * device.frameImage.scale
+        let scale = displayWidth / pixelWidth
+        let screenWidth = displayWidth - (
+            device.frame.screenInsets.left + device.frame.screenInsets.right
+        ) * scale
+        let screenHeight = displayHeight - (
+            device.frame.screenInsets.top + device.frame.screenInsets.bottom
+        ) * scale
+        let cornerRadius = device.frame.screenInsets.cornerRadius * scale
+        let screenX = (
+            device.frame.screenInsets.left - device.frame.screenInsets.right
+        ) * scale / 2
+        let screenY = (
+            device.frame.screenInsets.top - device.frame.screenInsets.bottom
+        ) * scale / 2
+
+        let clippedImage = clippedScreenshotImage(
+            for: device,
+            size: CGSize(
+                width: screenWidth,
+                height: screenHeight
+            ),
+            cornerRadius: cornerRadius
+        )
+
+        return ZStack {
+            Image(uiImage: clippedImage)
                 .frame(
-                    width: screenDisplayWidth,
-                    height: screenDisplayHeight
+                    width: screenWidth,
+                    height: screenHeight
                 )
                 .offset(
-                    x: screenOffsetX,
-                    y: screenOffsetY
+                    x: screenX,
+                    y: screenY
                 )
 
-            Image(uiImage: frameImage)
+            Image(uiImage: device.frameImage)
                 .resizable()
                 .frame(
-                    width: frameDisplayWidth,
-                    height: frameDisplayHeight
+                    width: displayWidth,
+                    height: displayHeight
                 )
         }
         .shadow(
-            color: frame.shadow?.color ?? .clear,
-            radius: (frame.shadow?.radius ?? 0) * canvasScaleX,
-            x: (frame.shadow?.x ?? 0) * canvasScaleX,
-            y: (frame.shadow?.y ?? 0) * canvasScaleY
+            color: device.frame.shadow?.color ?? .clear,
+            radius: (device.frame.shadow?.radius ?? 0) * canvasScaleX,
+            x: (device.frame.shadow?.x ?? 0) * canvasScaleX,
+            y: (device.frame.shadow?.y ?? 0) * canvasScaleY
         )
+    }
+
+    private func frameDisplayHeight(for device: LoadedDevice) -> CGFloat {
+        frameDisplayWidth(for: device) * (
+            device.frameImage.size.height / device.frameImage.size.width
+        )
+    }
+
+    private func frameDisplayWidth(for device: LoadedDevice) -> CGFloat {
+        canvasSize.width * device.frame.scale
     }
 
     private var headlineView: some View {
@@ -346,7 +355,7 @@ struct MockupCanvasView: View {
             .multilineTextAlignment(headline.alignment)
 
             if let subtitle = headline.subtitle,
-                let subtitleFont = scaledSubtitleFont {
+               let subtitleFont = scaledSubtitleFont {
                 Components.text(
                     subtitle.text.sanitized,
                     font: subtitleFont,
@@ -360,15 +369,6 @@ struct MockupCanvasView: View {
                 $0 * canvasScaleX
             } ?? canvasSize.width * Self.defaultHeadlineWidthRatio
         )
-    }
-
-    @ViewBuilder
-    private var screenContentView: some View {
-        if let clippedScreenshotImage {
-            Image(uiImage: clippedScreenshotImage)
-        } else {
-            Color.black
-        }
     }
 }
 

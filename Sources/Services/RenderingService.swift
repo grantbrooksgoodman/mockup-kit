@@ -17,14 +17,16 @@ struct RenderingService {
         _ mockup: Mockup,
         outputSize: OutputSize
     ) throws -> Data {
-        let frameImage = try loadImage(
-            from: mockup.frame.imageFile
-        )
+        let devices: [MockupCanvasView.LoadedDevice] = try mockup.devices.map { entry in
+            let frameImage = try loadImage(from: entry.frame.imageFile)
 
-        let screenshotImage: UIImage? = if let screenshotFile = mockup.screenshotFile {
-            try loadImage(from: screenshotFile)
-        } else {
-            nil
+            let screenshotImage = try loadImage(from: entry.screenshotURL)
+
+            return MockupCanvasView.LoadedDevice(
+                frame: entry.frame,
+                frameImage: frameImage,
+                screenshotImage: screenshotImage
+            )
         }
 
         let backgroundImage: UIImage? = if case let .image(url) = mockup.background {
@@ -37,10 +39,8 @@ struct RenderingService {
             background: mockup.background,
             backgroundImage: backgroundImage,
             canvasSize: outputSize.dimensions,
-            frame: mockup.frame,
-            frameImage: frameImage,
-            headline: mockup.headline,
-            screenshotImage: screenshotImage
+            devices: devices,
+            headline: mockup.headline
         )
 
         let renderer = ImageRenderer(content: canvasView)

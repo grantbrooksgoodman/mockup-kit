@@ -1,6 +1,6 @@
 # MockupKit
 
-A Swift framework for generating publication-ready App Store screenshot mockups with customizable device frames, backgrounds, and localized headlines.
+A framework for generating publication-ready App Store screenshot mockups with customizable device frames, backgrounds, and localized headlines.
 
 ---
 
@@ -12,6 +12,7 @@ A Swift framework for generating publication-ready App Store screenshot mockups 
 - [Getting Started](#getting-started)
 - [Defining Mockups](#defining-mockups)
   - [Background](#background)
+  - [Device Entry](#device-entry)
   - [Device Frame](#device-frame)
   - [Screen Insets](#screen-insets)
   - [Headline](#headline)
@@ -28,7 +29,7 @@ A Swift framework for generating publication-ready App Store screenshot mockups 
 
 ## Overview
 
-MockupKit composites app screenshots inside device frames with customizable backgrounds and headlines, producing PNG images at standard App Store dimensions.
+MockupKit composites app screenshots inside device frames with customizable backgrounds and headlines, producing PNG images at standard App Store dimensions. Each mockup supports one or more devices for single- and multi-device compositions.
 
 The framework provides two rendering paths:
 
@@ -70,10 +71,14 @@ let headline = Headline(
 
 let mockup = Mockup(
     background: .color(.blue),
-    frame: frame,
+    devices: [
+        DeviceEntry(
+            frame: frame,
+            screenshotURL: screenshotURL
+        ),
+    ],
     headline: headline,
-    name: "screen1",
-    screenshotFile: screenshotURL
+    name: "screen1"
 )
 
 try await MockupKit.generate(
@@ -88,7 +93,7 @@ Generated PNGs are written to the configured output directory, organized by outp
 
 ## Defining Mockups
 
-A [`Mockup`](Sources/Models/Mockup.swift) combines a background, device frame, headline, and optional app screenshot into a composited image. Each mockup is identified by a `name` that serves as its output filename.
+A [`Mockup`](Sources/Models/Mockup.swift) combines a background, one or more [`DeviceEntry`](Sources/Models/DeviceEntry.swift) values, and a headline into a composited image. Each mockup is identified by a `name` that serves as its output filename.
 
 ### Background
 
@@ -108,6 +113,44 @@ A [`Mockup`](Sources/Models/Mockup.swift) combines a background, device frame, h
     endPoint: .bottom
 )
 ```
+
+### Device Entry
+
+[`DeviceEntry`](Sources/Models/DeviceEntry.swift) pairs a [`DeviceFrame`](Sources/Models/DeviceFrame.swift) with an app screenshot. Pass one or more entries in the `devices` array to compose single- or multi-device mockups:
+
+```swift
+// Single device
+let mockup = Mockup(
+    background: .color(.blue),
+    devices: [
+        DeviceEntry(
+            frame: frame,
+            screenshotURL: screenshotURL
+        ),
+    ],
+    headline: headline,
+    name: "screen1"
+)
+
+// Two devices side by side
+let mockup = Mockup(
+    background: .color(.blue),
+    devices: [
+        DeviceEntry(
+            frame: leftFrame,
+            screenshotURL: leftScreenshotURL
+        ),
+        DeviceEntry(
+            frame: rightFrame,
+            screenshotURL: rightScreenshotURL
+        ),
+    ],
+    headline: headline,
+    name: "screen1"
+)
+```
+
+The first entry in the array is the primary device. Headline positioning is calculated relative to the primary device's frame.
 
 ### Device Frame
 
@@ -181,15 +224,15 @@ A [`Headline.Subtitle`](Sources/Models/Headline.swift) can be attached to displa
 
 | Case | Behavior |
 | --- | --- |
-| `.above(spacing:)` | Above the device frame, moving with its offset. |
-| `.below(spacing:)` | Below the device frame, moving with its offset. |
+| `.above(spacing:)` | Above the primary device frame, moving with its offset. |
+| `.below(spacing:)` | Below the primary device frame, moving with its offset. |
 | `.canvasTop(padding:)` | Anchored to the top edge of the canvas. |
 | `.canvasBottom(padding:)` | Anchored to the bottom edge of the canvas. |
-| `.equidistantTop(offset:)` | Centered between the canvas top and the device frame top. |
-| `.equidistantBottom(offset:)` | Centered between the device frame bottom and the canvas bottom. |
+| `.equidistantTop(offset:)` | Centered between the canvas top and the primary device frame top. |
+| `.equidistantBottom(offset:)` | Centered between the primary device frame bottom and the canvas bottom. |
 | `.custom(x:y:)` | Positioned at an absolute point on the canvas. |
 
-Grouped positions (`.above`, `.below`) move with the device frame's offset. Canvas-anchored and equidistant positions are independent of the frame offset.
+Grouped positions (`.above`, `.below`) move with the primary device frame's offset. Canvas-anchored and equidistant positions are independent of the frame offset.
 
 ### Shadow
 

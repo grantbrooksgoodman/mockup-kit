@@ -30,6 +30,7 @@ public protocol TranslationDelegate: Sendable {
     /// - Parameters:
     ///   - text: The source text to translate.
     ///   - languageCode: The ISO 639-1 target language code.
+    ///
     /// - Returns: The translated text.
     func translate(
         _ text: String,

@@ -16,7 +16,7 @@ public enum OutputSize: Hashable, Sendable {
         width: CGFloat,
         height: CGFloat
     )
-    
+
     /// The 6.9-inch display class (1290 x 2796).
     case large
 
@@ -36,7 +36,7 @@ public enum OutputSize: Hashable, Sendable {
 
         case .large:
             OutputSize.largeDimensions
-            
+
         case .small:
             OutputSize.smallDimensions
         }

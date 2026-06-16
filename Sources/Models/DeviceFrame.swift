@@ -70,11 +70,11 @@ public struct DeviceFrame: Sendable {
             throw MockupKit.Error.imageLoadFailed(imageFile)
         }
 
-        self.init(
+        try self.init(
             imageFile: imageFile,
             offset: offset,
             scale: scale,
-            screenInsets: try .detect(from: cgImage),
+            screenInsets: .detect(from: cgImage),
             shadow: shadow
         )
     }

@@ -11,8 +11,8 @@ import SwiftUI
 
 /// A complete configuration for a single App Store screenshot mockup.
 ///
-/// Each mockup combines a ``Background``, ``DeviceFrame``, ``Headline``, and optional app
-/// screenshot into a composited image. Pass an array of mockups to
+/// Each mockup combines a ``Background``, one or more ``DeviceEntry`` values, and a
+/// ``Headline`` into a composited image. Pass an array of mockups to
 /// ``MockupKit/generate(_:outputSizes:translatingTo:)`` to render them as PNG files.
 public struct Mockup: Sendable {
     // MARK: - Properties
@@ -20,8 +20,17 @@ public struct Mockup: Sendable {
     /// The background fill of the mockup canvas.
     public let background: Background
 
-    /// The device frame configuration.
-    public let frame: DeviceFrame
+    /// The device entries displayed on the canvas.
+    ///
+    /// Each entry pairs a ``DeviceFrame`` with an app screenshot. The first
+    /// entry in the array is the primary device. Headline positioning for grouped
+    /// positions like ``HeadlinePosition/above(spacing:)`` and
+    /// ``HeadlinePosition/below(spacing:)`` is calculated relative to the primary
+    /// device's frame.
+    ///
+    /// Use the ``DeviceFrame/offset`` and ``DeviceFrame/scale`` properties on each
+    /// entry's frame to position multiple devices side by side.
+    public let devices: [DeviceEntry]
 
     /// The headline text overlaid on the canvas.
     public let headline: Headline
@@ -29,33 +38,25 @@ public struct Mockup: Sendable {
     /// The output filename (without extension) used when writing the mockup to disk.
     public let name: String
 
-    /// The file URL of the app screenshot displayed within the device frame.
-    ///
-    /// Pass `nil` to render the device frame with a black screen.
-    public let screenshotFile: URL?
-
     // MARK: - Init
 
-    /// Creates a mockup with the specified background, device frame, headline, and screenshot.
+    /// Creates a mockup with the specified background, devices, and headline.
     ///
     /// - Parameters:
     ///   - background: The background fill of the canvas.
-    ///   - frame: The device frame configuration.
+    ///   - devices: The device entries to display on the canvas.
     ///   - headline: The headline text to display.
     ///   - name: The output filename without extension.
-    ///   - screenshotFile: The file URL of the app screenshot, or `nil` for a black screen.
     public init(
         background: Background,
-        frame: DeviceFrame,
+        devices: [DeviceEntry],
         headline: Headline,
-        name: String,
-        screenshotFile: URL?
+        name: String
     ) {
         self.background = background
-        self.frame = frame
+        self.devices = devices
         self.headline = headline
         self.name = name
-        self.screenshotFile = screenshotFile
     }
 
     // MARK: - Methods
@@ -78,7 +79,7 @@ public struct Mockup: Sendable {
 
         return Mockup(
             background: background,
-            frame: frame,
+            devices: devices,
             headline: Headline(
                 text,
                 alignment: headline.alignment,
@@ -88,8 +89,7 @@ public struct Mockup: Sendable {
                 position: headline.position,
                 subtitle: newSubtitle
             ),
-            name: name,
-            screenshotFile: screenshotFile
+            name: name
         )
     }
 }
