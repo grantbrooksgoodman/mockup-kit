@@ -9,7 +9,7 @@
 import Foundation
 import SwiftUI
 
-/// A complete configuration for a single App Store screenshot mockup.
+/// A complete configuration for a single screenshot mockup.
 ///
 /// Each mockup combines a ``Background``, one or more ``DeviceEntry`` values, and a
 /// ``Headline`` into a composited image. Pass an array of mockups to

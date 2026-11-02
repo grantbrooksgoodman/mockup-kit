@@ -9,14 +9,6 @@
 import Foundation
 import SwiftUI
 
-// MARK: - MockupCanvasView
-
-extension MockupCanvasView {
-    /// The default headline width as a fraction of the canvas width, used when
-    /// ``Headline/maximumWidth`` is `nil`.
-    static let defaultHeadlineWidthRatio: CGFloat = 0.85
-}
-
 // MARK: - MockupShadow
 
 public extension MockupShadow {
@@ -32,6 +24,14 @@ public extension MockupShadow {
     )
 }
 
+// MARK: - MockupCanvasView
+
+extension MockupCanvasView {
+    /// The default headline width as a fraction of the canvas width, used when
+    /// ``Headline/maximumWidth`` is `nil`.
+    static let defaultHeadlineWidthRatio: CGFloat = 0.85
+}
+
 // MARK: - OutputSize
 
 extension OutputSize {
@@ -39,6 +39,11 @@ extension OutputSize {
     static let largeDimensions = CGSize(
         width: 1290,
         height: 2796
+    )
+
+    static let playStorePhoneDimensions = CGSize(
+        width: 1080,
+        height: 1920
     )
 
     /// The canvas dimensions for the 5.5-inch display class (1242 x 2208).

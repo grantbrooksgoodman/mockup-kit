@@ -1,6 +1,6 @@
 # MockupKit
 
-A framework for generating publication-ready App Store screenshot mockups with customizable device frames, backgrounds, and localized headlines.
+A framework for generating publication-ready App Store and Google Play screenshot mockups with customizable device frames, backgrounds, and localized headlines.
 
 ---
 
@@ -19,6 +19,7 @@ A framework for generating publication-ready App Store screenshot mockups with c
   - [Headline Position](#headline-position)
   - [Shadow](#shadow)
 - [Output Sizes](#output-sizes)
+  - [Google Play Output](#google-play-output)
 - [Rendering](#rendering)
 - [Configuration](#configuration)
 - [Translation](#translation)
@@ -29,7 +30,7 @@ A framework for generating publication-ready App Store screenshot mockups with c
 
 ## Overview
 
-MockupKit composites app screenshots inside device frames with customizable backgrounds and headlines, producing PNG images at standard App Store dimensions. Each mockup supports one or more devices for single- and multi-device compositions.
+MockupKit composites app screenshots inside device frames with customizable backgrounds and headlines, producing PNG images at standard App Store and Google Play dimensions. Each mockup supports one or more devices for single- and multi-device compositions.
 
 The framework provides two rendering paths:
 
@@ -113,6 +114,8 @@ A [`Mockup`](Sources/Models/Mockup.swift) combines a background, one or more [`D
     endPoint: .bottom
 )
 ```
+
+Use an opaque background for Google Play sizes. The image is rendered without an alpha channel.
 
 ### Device Entry
 
@@ -261,14 +264,33 @@ let frame = try DeviceFrame(
 
 ## Output Sizes
 
-[`OutputSize`](Sources/Models/OutputSize.swift) defines the output dimensions for a generated mockup PNG. Two preset sizes correspond to standard App Store display classes:
+[`OutputSize`](Sources/Models/OutputSize.swift) defines the output dimensions for a generated mockup PNG. Three preset sizes correspond to standard App Store and Google Play display classes:
 
 | Case | Dimensions | Display Class |
 | --- | --- | --- |
 | `.large` | 1290 x 2796 | 6.9-inch |
+| `.playStore(.phone)` | 1080 x 1920 | Google Play phone |
 | `.small` | 1242 x 2208 | 5.5-inch |
 
-Use `.custom(width:height:)` for arbitrary dimensions.
+Use `.custom(width:height:)` for arbitrary dimensions. Use `.playStore(.custom(width:height:))` for any other Google Play dimensions.
+
+### Google Play Output
+
+Google Play sizes are rendered as 24-bit PNG files without an alpha channel. Generated files are written beneath a `play-store` subdirectory:
+
+```
+<outputDirectory>/play-store/phone/<name>.png
+<outputDirectory>/<languageCode>/play-store/phone/<name>.png
+```
+
+A 1080 x 1920 canvas renders the composition of `.small` scaled down, so mockups composed for `.small` need no retuning for Google Play.
+
+```swift
+try await MockupKit.generate(
+    [mockup],
+    outputSizes: [.small, .playStore(.phone)]
+)
+```
 
 ---
 

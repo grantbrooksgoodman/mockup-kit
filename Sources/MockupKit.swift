@@ -8,11 +8,14 @@
 /* Native */
 import Foundation
 
-/// A framework for generating App Store screenshot mockups.
+/// A framework for generating App Store and Google Play screenshot
+/// mockups.
 ///
-/// MockupKit composites app screenshots inside device frames with customizable backgrounds
-/// and headlines, producing publication-ready PNG images at standard App Store dimensions.
-/// Each mockup supports one or more ``DeviceEntry`` values for multi-device compositions.
+/// MockupKit composites app screenshots inside device frames with
+/// customizable backgrounds and headlines, producing
+/// publication-ready PNG images at standard App Store and Google
+/// Play dimensions. Each mockup supports one or more ``DeviceEntry``
+/// values for multi-device compositions.
 ///
 /// Call ``generate(_:outputSizes:translatingTo:)`` to render a batch of mockups to disk,
 /// or ``render(_:outputSize:)`` to obtain the image data directly.
@@ -31,6 +34,10 @@ public enum MockupKit {
     /// When `languageCodes` is non-empty, each mockup's headline is translated and rendered
     /// for every target language. Source-language mockups are placed in a subdirectory named
     /// after ``Config/sourceLanguageCode``.
+    ///
+    /// - Note: Google Play sizes are written beneath a `play-store`
+    ///   subdirectory of the output directory, or of the language
+    ///   directory when translating.
     ///
     /// - Parameters:
     ///   - mockups: The mockup configurations to render.
@@ -125,6 +132,9 @@ public enum MockupKit {
     ///
     /// Use this method when you need direct access to the rendered image data without
     /// writing to disk.
+    ///
+    /// - Note: For Google Play sizes, the image is rendered without
+    ///   an alpha channel.
     ///
     /// - Parameters:
     ///   - mockup: The mockup configuration to render.

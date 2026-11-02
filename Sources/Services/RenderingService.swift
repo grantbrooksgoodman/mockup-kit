@@ -45,6 +45,7 @@ struct RenderingService {
 
         let renderer = ImageRenderer(content: canvasView)
         renderer.scale = 1
+        renderer.isOpaque = outputSize.isOpaque
 
         guard let cgImage = renderer.cgImage else {
             throw MockupKit.Error.renderingFailed
