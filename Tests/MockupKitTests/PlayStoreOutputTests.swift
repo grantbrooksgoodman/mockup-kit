@@ -46,7 +46,10 @@ struct PlayStoreOutputTests {
     }
 
     @Test
-    func directoryNamesIncludePlayStoreSubdirectory() {
+    func directoryNamesIncludeStoreSubdirectory() {
+        #expect(OutputSize.large.directoryName == "app-store/large")
+        #expect(OutputSize.small.directoryName == "app-store/small")
+        #expect(Self.appStoreCustomSize.directoryName == "1080x1920")
         #expect(OutputSize.playStore(.phone).directoryName == "play-store/phone")
         #expect(Self.playStoreCustomSize.directoryName == "play-store/1200x2133")
     }

@@ -88,7 +88,7 @@ try await MockupKit.generate(
 )
 ```
 
-Generated PNGs are written to the configured output directory, organized by output size.
+Generated PNGs are written to the configured output directory, organized by store and output size.
 
 ---
 
@@ -266,22 +266,26 @@ let frame = try DeviceFrame(
 
 [`OutputSize`](Sources/Models/OutputSize.swift) defines the output dimensions for a generated mockup PNG. Three preset sizes correspond to standard App Store and Google Play display classes:
 
-| Case | Dimensions | Display Class |
-| --- | --- | --- |
-| `.large` | 1290 x 2796 | 6.9-inch |
-| `.playStore(.phone)` | 1080 x 1920 | Google Play phone |
-| `.small` | 1242 x 2208 | 5.5-inch |
+| Case | Dimensions | Display Class | Directory |
+| --- | --- | --- | --- |
+| `.large` | 1290 x 2796 | 6.9-inch | `app-store/large` |
+| `.playStore(.phone)` | 1080 x 1920 | Google Play phone | `play-store/phone` |
+| `.small` | 1242 x 2208 | 5.5-inch | `app-store/small` |
 
-Use `.custom(width:height:)` for arbitrary dimensions. Use `.playStore(.custom(width:height:))` for any other Google Play dimensions.
+Use `.custom(width:height:)` for arbitrary dimensions. Use `.playStore(.custom(width:height:))` for any other Google Play dimensions. Both are written to a `<width>x<height>` directory, beneath `play-store` for the latter.
+
+Generated files are organized by store and output size. When translating, each language code adds a directory above them:
+
+```
+<outputDirectory>/app-store/large/<name>.png
+<outputDirectory>/play-store/phone/<name>.png
+<outputDirectory>/<languageCode>/app-store/large/<name>.png
+<outputDirectory>/<languageCode>/play-store/phone/<name>.png
+```
 
 ### Google Play Output
 
-Google Play sizes are rendered as 24-bit PNG files without an alpha channel. Generated files are written beneath a `play-store` subdirectory:
-
-```
-<outputDirectory>/play-store/phone/<name>.png
-<outputDirectory>/<languageCode>/play-store/phone/<name>.png
-```
+Google Play sizes are rendered as 24-bit PNG files without an alpha channel.
 
 A 1080 x 1920 canvas renders the composition of `.small` scaled down, so mockups composed for `.small` need no retuning for Google Play.
 
@@ -364,7 +368,7 @@ try await MockupKit.generate(
 )
 ```
 
-Generated files are organized into subdirectories by language code and output size. Source-language mockups use the configured `sourceLanguageCode` as their directory name.
+Generated files are organized into subdirectories by language code, store, and output size. Source-language mockups use the configured `sourceLanguageCode` as their directory name.
 
 ---
 

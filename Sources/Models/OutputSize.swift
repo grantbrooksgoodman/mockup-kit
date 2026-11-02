@@ -66,13 +66,13 @@ public enum OutputSize: Hashable, Sendable {
             "\(Int(width))x\(Int(height))"
 
         case .large:
-            "large"
+            "app-store/large"
 
         case let .playStore(size):
             "play-store/\(size.directoryName)"
 
         case .small:
-            "small"
+            "app-store/small"
         }
     }
 

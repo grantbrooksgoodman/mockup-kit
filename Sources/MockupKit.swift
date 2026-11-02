@@ -35,9 +35,11 @@ public enum MockupKit {
     /// for every target language. Source-language mockups are placed in a subdirectory named
     /// after ``Config/sourceLanguageCode``.
     ///
-    /// - Note: Google Play sizes are written beneath a `play-store`
+    /// - Note: App Store sizes are written beneath an `app-store`
+    ///   subdirectory and Google Play sizes beneath a `play-store`
     ///   subdirectory of the output directory, or of the language
-    ///   directory when translating.
+    ///   directory when translating. Custom sizes are written
+    ///   directly beneath it.
     ///
     /// - Parameters:
     ///   - mockups: The mockup configurations to render.
