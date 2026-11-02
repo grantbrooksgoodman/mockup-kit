@@ -34,5 +34,10 @@ let package = Package(
             path: "Sources",
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
+        .testTarget(
+            name: "MockupKitTests",
+            dependencies: ["MockupKit"],
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
     ]
 )
