@@ -19,7 +19,7 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/grantbrooksgoodman/component-kit",
-            branch: "main"
+            exact: "5.0.4"
         ),
     ],
     targets: [
