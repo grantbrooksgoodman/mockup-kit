@@ -66,7 +66,8 @@ public struct Mockup: Sendable {
         with text: String,
         subtitleText: String? = nil
     ) -> Mockup {
-        let newSubtitle: Headline.Subtitle? = if let subtitleText, let existing = headline.subtitle {
+        let newSubtitle: Headline.Subtitle? = if let subtitleText,
+                                                 let existing = headline.subtitle {
             Headline.Subtitle(
                 subtitleText,
                 font: existing.font,
